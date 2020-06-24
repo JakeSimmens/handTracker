@@ -26,8 +26,6 @@ handTrack.load().then(model => {
     });
 });
 
-
-
 const modelParams = {
     flipHorizontal: true,   // flip e.g for video 
     imageScaleFactor: 0.7,  // reduce input image size for gains in speed.

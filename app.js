@@ -1,6 +1,12 @@
 const video = document.getElementById("video");
+const audio1 = document.getElementById("audio1");
+const audio2 = document.getElementById("audio2");
+const audio3 = document.getElementById("audio3");
+const audio4 = document.getElementById("audio4");
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
+const handLocation = document.getElementById("handLocation");
+
 let loadModel;
 
 
@@ -26,13 +32,13 @@ function runDetection() {
         //CODE TO INTERACT WITH SOUND WILL BE BASED ON PREDICTION DATA
         //console.log(predictions.length);
         if (predictions.length > 0) {
-            soundPlayer(predictions);
+            processPredictions(predictions);
         }
 
 
 
         //draws second image with boxes
-        //model.renderPredictions(predictions, canvas, context, video);
+        model.renderPredictions(predictions, canvas, context, video);
 
         //this will request the detection over and over again
         //You can also use set interval int he startVideo function to call repeatedly
@@ -46,11 +52,13 @@ handTrack.startVideo(video)
     .then(status => {
         if (status) {
             navigator.getUserMedia(
-                { video: {} },
+                {
+                    video: {}
+                },
                 (stream) => {
                     video.srcObject = stream;
 
-                    setInterval(runDetection, 100);
+                    setInterval(runDetection, 1000);
                 },
                 (err) => {
                     console.log("Video feed not working.");
@@ -67,9 +75,36 @@ handTrack.load(modelParams).then(loadModel => {
 
 });
 
-function soundPlayer(objLocation) {
-    console.log(objLocation[0].bbox[1]);
-    console.log(objLocation[0].score);
+function processPredictions(predictions) {
+    //check on scores being about 90%
+    //call for each hand in prediction
+    if (!predictions.length) {
+        return;
+    }
+
+    //pulls out x,y coordinates to send to sound player
+    for (let prediction of predictions) {
+        if (prediction.score > .85) {
+            soundPlayer(prediction.bbox[0], prediction.bbox[1]);  //x, y coord
+        }
+    }
+
+
+}
+
+function soundPlayer(x, y) {
+    handLocation.innerHTML = `<p> x-axis: ${x}</p><p>y-axis: ${y}</p>`;
+
+    if (x < 100) {
+        audio1.play();
+    } else if (x < 200) {
+        audio2.play();
+    } else if (x < 300) {
+        audio3.play();
+    } else if (x < 500) {
+        audio4.play();
+    }
+
 }
 
 

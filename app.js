@@ -58,7 +58,7 @@ handTrack.startVideo(video)
                 (stream) => {
                     video.srcObject = stream;
 
-                    setInterval(runDetection, 1000);
+                    setInterval(runDetection, 500);
                 },
                 (err) => {
                     console.log("Video feed not working.");
@@ -78,15 +78,23 @@ handTrack.load(modelParams).then(loadModel => {
 function processPredictions(predictions) {
     //check on scores being about 90%
     //call for each hand in prediction
+    let centerX = 0;
+    let centerY = 0;
+
     if (!predictions.length) {
         return;
     }
 
     //pulls out x,y coordinates to send to sound player
+    //2nd set of data is box size.  need to figure out center point
     for (let prediction of predictions) {
-        if (prediction.score > .85) {
-            soundPlayer(prediction.bbox[0], prediction.bbox[1]);  //x, y coord
-        }
+
+        //figure center coordinates of hand box
+        centerX = prediction.bbox[0] + prediction.bbox[2] * .5;
+        centerY = prediction.bbox[1] + prediction.bbox[3] * .5;
+        console.log(`ctrx: ${centerX} and ctry: ${centerY}`);
+
+        soundPlayer(centerX, centerY);
     }
 
 
@@ -95,13 +103,15 @@ function processPredictions(predictions) {
 function soundPlayer(x, y) {
     handLocation.innerHTML = `<p> x-axis: ${x}</p><p>y-axis: ${y}</p>`;
 
-    if (x < 100) {
+    //640 x 480
+
+    if (x < 320 && y < 240) {
         audio1.play();
-    } else if (x < 200) {
+    } else if (x < 320 && y < 480) {
         audio2.play();
-    } else if (x < 300) {
+    } else if (x < 640 && y < 240) {
         audio3.play();
-    } else if (x < 500) {
+    } else if (x < 640 && y < 480) {
         audio4.play();
     }
 

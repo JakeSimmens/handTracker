@@ -29,16 +29,33 @@ function runDetection() {
     model.detect(video).then(predictions => {
         console.log("Predictions: ", predictions);
 
+
+
+
+
+        //draws second image with boxes
+        model.renderPredictions(predictions, canvas, context, video);
+
         //CODE TO INTERACT WITH SOUND WILL BE BASED ON PREDICTION DATA
         //console.log(predictions.length);
         if (predictions.length > 0) {
             processPredictions(predictions);
         }
 
+        // Filled rectangle
+        context.fillStyle = 'rgba(255, 255, 255, .3)';
+        context.fillRect(10, 10, 300, 220);
+
+        context.fillStyle = 'rgba(0,255,255, .3)';
+        context.fillRect(320, 10, 300, 220);
+
+        context.fillStyle = 'rgba(255,0,0, .3)';
+        context.fillRect(10, 250, 300, 220);
+
+        context.fillStyle = 'rgba(0,0,255, .3)';
+        context.fillRect(320, 250, 300, 220);
 
 
-        //draws second image with boxes
-        model.renderPredictions(predictions, canvas, context, video);
 
         //this will request the detection over and over again
         //You can also use set interval int he startVideo function to call repeatedly
@@ -93,6 +110,9 @@ function processPredictions(predictions) {
         centerX = prediction.bbox[0] + prediction.bbox[2] * .5;
         centerY = prediction.bbox[1] + prediction.bbox[3] * .5;
         console.log(`ctrx: ${centerX} and ctry: ${centerY}`);
+
+        context.fillStyle = "white";
+        context.fillRect(centerX, centerY, 10, 10);
 
         soundPlayer(centerX, centerY);
     }

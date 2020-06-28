@@ -8,6 +8,9 @@ const context = canvas.getContext("2d");
 const handLocation = document.getElementById("handLocation");
 
 let loadModel;
+video.width = 1280;
+//console.log(window.screen.width);
+
 
 
 const modelParams = {
@@ -27,14 +30,22 @@ navigator.getUserMedia = navigator.getUserMedia ||
 //detect hands in video
 function runDetection() {
     model.detect(video).then(predictions => {
-        console.log("Predictions: ", predictions);
+        //console.log("Predictions: ", predictions);
 
+        //console.log(video.width);
+        //console.log(video.height);
 
-
-
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = video.width;
+        canvas.height = video.height;
+        context.save();
+        context.scale(-1, 1);  //flips to mirror image
+        context.translate(-video.width, 0);
+        context.drawImage(video, 0, 0, video.width, video.height);
+        context.restore();
 
         //draws second image with boxes
-        model.renderPredictions(predictions, canvas, context, video);
+        //model.renderPredictions(predictions, canvas, context, video);
 
         //CODE TO INTERACT WITH SOUND WILL BE BASED ON PREDICTION DATA
         //console.log(predictions.length);
@@ -42,18 +53,35 @@ function runDetection() {
             processPredictions(predictions);
         }
 
+        //need to calculate rectangles based on video width
         // Filled rectangle
-        context.fillStyle = 'rgba(255, 255, 255, .3)';
-        context.fillRect(10, 10, 300, 220);
 
-        context.fillStyle = 'rgba(0,255,255, .3)';
-        context.fillRect(320, 10, 300, 220);
 
-        context.fillStyle = 'rgba(255,0,0, .3)';
-        context.fillRect(10, 250, 300, 220);
+        //figure rectangle size and spacing based on video width
+        let rectWidth = video.width * .4;
+        let rectHeight = rectWidth * .75;
+        let verticalSpace = (video.width - (rectWidth * 2)) / 3;
+        let horizontalSpace = verticalSpace * .75;
+        let rightBoxSpacing = 0;
+        let botBoxSpacing = 0;
 
-        context.fillStyle = 'rgba(0,0,255, .3)';
-        context.fillRect(320, 250, 300, 220);
+        //upper left
+        context.fillStyle = 'rgba(255, 255, 255, .5)';
+        context.fillRect(verticalSpace, horizontalSpace, rectWidth, rectHeight);
+
+        //upper right
+        context.fillStyle = 'rgba(0,255,100, .5)';
+        rightBoxSpacing = verticalSpace * 2 + rectWidth;
+        context.fillRect(rightBoxSpacing, horizontalSpace, rectWidth, rectHeight);
+
+        //lower left
+        context.fillStyle = 'rgba(255,0,0, .5)';
+        botBoxSpacing = horizontalSpace * 2 + rectHeight;
+        context.fillRect(verticalSpace, botBoxSpacing, rectWidth, rectHeight);
+
+        //lower right
+        context.fillStyle = 'rgba(0,0,255, .5)';
+        context.fillRect(rightBoxSpacing, botBoxSpacing, rectWidth, rectHeight);
 
 
 

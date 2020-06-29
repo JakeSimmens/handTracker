@@ -1,3 +1,13 @@
+// @article{Dibia2017,
+//     author = {Victor, Dibia},
+//     title = {HandTrack: A Library For Prototyping Real-time Hand TrackingInterfaces using Convolutional Neural Networks},
+//     year = {2017},
+//     publisher = {GitHub},
+//     journal = {GitHub repository},
+//     url = {https://github.com/victordibia/handtracking/tree/master/docs/handtrack.pdf}, 
+//   }
+
+
 const video = document.getElementById("video");
 const audio1 = document.getElementById("audio1");
 const audio2 = document.getElementById("audio2");
@@ -8,8 +18,7 @@ const context = canvas.getContext("2d");
 
 
 let loadModel;
-video.width = 1280;
-//console.log(window.screen.width);
+//video.width = 720;
 
 
 const modelParams = {
@@ -21,67 +30,65 @@ const modelParams = {
 }
 
 //access video feed based on browser
-navigator.getUserMedia = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia ||
-    navigator.mozGetUserMedia ||
-    navigator.msGetUserMedia;
+// navigator.getUserMedia = navigator.getUserMedia ||
+//     navigator.webkitGetUserMedia ||
+//     navigator.mozGetUserMedia ||
+//     navigator.msGetUserMedia;
+
 
 //detect hands in video
 function runDetection() {
-    model.detect(video).then(predictions => {
-        //console.log("Predictions: ", predictions);
-        let overlayLocations;
+    model.detect(video)
+        .then(predictions => {
 
+            let overlayLocations;
 
-        drawMirroredVideo(video, canvas, context);
+            drawMirroredVideo(video, canvas, context);
 
-        //draws second image with boxes of hand locations
-        //model.renderPredictions(predictions, canvas, context, video);
+            //Handtrack's method of drawing second image with boxes of hand locations
+            //model.renderPredictions(predictions, canvas, context, video);
 
+            overlayLocations = overlayRectangles(video, context);
 
+            //Code to interact wtih sound is based on prediction data
+            if (predictions.length > 0) {
+                processPredictions(predictions, overlayLocations);
+            }
 
-        overlayLocations = overlayRectangles(video, context);
-
-        //Code to interact wtih sound is based on prediction data
-        if (predictions.length > 0) {
-            processPredictions(predictions, overlayLocations);
-        }
-
-
-
-    });
+        })
+        .catch(err => {
+            console.log(err);
+        });
 }
 
 //start video feed from web cam
 handTrack.startVideo(video)
     .then(status => {
         if (status) {
-            navigator.getUserMedia(
+            navigator.mediaDevices.getUserMedia(
                 {
-                    video: {}
-                },
-                (stream) => {
+                    video: {
+                        width: 640
+                    },
+                    audio: false
+                })
+                .then(stream => {
                     video.srcObject = stream;
-
-                    setInterval(runDetection, 250);
-                },
-                (err) => {
-                    console.log("Video feed not working.");
-                }
-            )
+                    setInterval(runDetection, 500);
+                });
         }
+    })
+    .catch(err => {
+        console.log(err);
     });
 
 
 
 // Load the model.
-handTrack.load(modelParams).then(loadModel => {
-    model = loadModel;
-
-});
-
-
-
-
-// WebGL2RenderingContext.getBufferSubData()
-// o.getBufferSubData(p.ARRAY_BUFFER, 0, a)
+handTrack.load(modelParams)
+    .then(loadModel => {
+        model = loadModel;
+    })
+    .catch(err => {
+        console.log(err);
+    });

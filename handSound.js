@@ -1,4 +1,3 @@
-const handLocation = document.getElementById("handLocation");
 
 function drawMirroredVideo(video, canvas, context) {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -12,8 +11,7 @@ function drawMirroredVideo(video, canvas, context) {
 }
 
 function processPredictions(predictions, rectLocations) {
-    //check on scores being about 90%
-    //call for each hand in prediction
+
     let centerX = 0;
     let centerY = 0;
 
@@ -22,14 +20,13 @@ function processPredictions(predictions, rectLocations) {
     }
 
     //pulls out x,y coordinates to send to sound player
-    //2nd set of data is box size.  need to figure out center point
     for (let prediction of predictions) {
 
         //figure center coordinates of hand box
         centerX = prediction.bbox[0] + prediction.bbox[2] * .5;
         centerY = prediction.bbox[1] + prediction.bbox[3] * .5;
-        console.log(`ctrx: ${centerX} and ctry: ${centerY}`);
 
+        //draws white dot for hand location
         context.fillStyle = "white";
         context.fillRect(centerX, centerY, 10, 10);
 
@@ -51,36 +48,35 @@ function overlayRectangles(video, context) {
     let rectLocations = {};
 
     //upper left
-    context.fillStyle = 'rgba(255, 255, 255, .5)';
-    context.fillRect(xSpacing, ySpacing, rectWidth, rectHeight);
     rectLocations = {
         upperLeft: [xSpacing, ySpacing, rectWidth, rectHeight]
     };
+    drawRect("rgba(0,255,100, .5)", rectLocations.upperLeft, context);
 
     //upper right
-    context.fillStyle = 'rgba(0,255,100, .5)';
     rightBoxSpacing = xSpacing * 2 + rectWidth;
-    context.fillRect(rightBoxSpacing, ySpacing, rectWidth, rectHeight);
     rectLocations.upperRight = [rightBoxSpacing, ySpacing, rectWidth, rectHeight];
+    drawRect("rgba(255,150,0, .5)", rectLocations.upperRight, context);
 
     //lower left
-    context.fillStyle = 'rgba(255,0,0, .5)';
     botBoxSpacing = ySpacing * 2 + rectHeight;
-    context.fillRect(xSpacing, botBoxSpacing, rectWidth, rectHeight);
     rectLocations.lowerLeft = [xSpacing, botBoxSpacing, rectWidth, rectHeight];
+    drawRect("rgba(128, 0, 128, .5)", rectLocations.lowerLeft, context);
 
     //lower right
-    context.fillStyle = 'rgba(0,0,255, .5)';
-    context.fillRect(rightBoxSpacing, botBoxSpacing, rectWidth, rectHeight);
     rectLocations.lowerRight = [rightBoxSpacing, botBoxSpacing, rectWidth, rectHeight];
+    drawRect("rgba(0,0,255, .5)", rectLocations.lowerRight, context);
 
     return rectLocations;
 }
 
-function soundPlayer(x, y, locations) {
-    handLocation.innerHTML = `<p> x-axis: ${x}</p><p>y-axis: ${y}</p>`;
+function drawRect(color, rect, context) {
+    context.fillStyle = color;
+    context.fillRect(rect[0], rect[1], rect[2], rect[3]);
+}
 
-    //destructure into variables of arrays
+function soundPlayer(x, y, locations) {
+
     const { upperLeft, lowerLeft, upperRight, lowerRight } = locations;
 
     //box arrays:  xStart, yStart, xWidth, yHeight
@@ -97,19 +93,19 @@ function soundPlayer(x, y, locations) {
     if (y > upperTopEdge && y < upperBotEdge) {
         //top boxes
         if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
-            //play upperleft sound
+            //play upper left sound
             audio1.play();
         } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
-            //play upperright sound
+            //play upper right sound
             audio2.play();
         }
     } else if (y > lowerTopEdge && y < lowerBotEdge) {
         //bottom boxes
         if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
-            //play lowerleft sound
+            //play lower left sound
             audio3.play();
         } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
-            //play lowerright sound
+            //play lower right sound
             audio4.play();
         }
     }

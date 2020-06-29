@@ -16,10 +16,7 @@ const audio4 = document.getElementById("audio4");
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 
-
 let loadModel;
-//video.width = 720;
-
 
 const modelParams = {
     flipHorizontal: true,   // flip e.g for video 
@@ -69,8 +66,7 @@ handTrack.startVideo(video)
                 {
                     video: {
                         width: 640
-                    },
-                    audio: false
+                    }
                 })
                 .then(stream => {
                     video.srcObject = stream;
@@ -81,8 +77,6 @@ handTrack.startVideo(video)
     .catch(err => {
         console.log(err);
     });
-
-
 
 // Load the model.
 handTrack.load(modelParams)

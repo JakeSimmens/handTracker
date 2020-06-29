@@ -28,7 +28,7 @@ function processPredictions(predictions, rectLocations) {
 
         //draws white dot for hand location
         context.fillStyle = "white";
-        context.fillRect(centerX, centerY, 10, 10);
+        context.fillRect(centerX, centerY, 5, 5);
 
         soundPlayer(centerX, centerY, rectLocations);
     }

@@ -30,29 +30,24 @@ navigator.getUserMedia = navigator.getUserMedia ||
 function runDetection() {
     model.detect(video).then(predictions => {
         //console.log("Predictions: ", predictions);
+        let overlayLocations;
 
 
         drawMirroredVideo(video, canvas, context);
 
-        //draws second image with boxes
+        //draws second image with boxes of hand locations
         //model.renderPredictions(predictions, canvas, context, video);
 
-        //CODE TO INTERACT WITH SOUND WILL BE BASED ON PREDICTION DATA
-        //console.log(predictions.length);
+
+
+        overlayLocations = overlayRectangles(video, context);
+
+        //Code to interact wtih sound is based on prediction data
         if (predictions.length > 0) {
-            processPredictions(predictions);
+            processPredictions(predictions, overlayLocations);
         }
 
-        //need to calculate rectangles based on video width
-        // Filled rectangle
 
-        overlayRectangles(video, context);
-
-
-
-        //this will request the detection over and over again
-        //You can also use set interval int he startVideo function to call repeatedly
-        //requestAnimationFrame(runDetection);
 
     });
 }
@@ -68,7 +63,7 @@ handTrack.startVideo(video)
                 (stream) => {
                     video.srcObject = stream;
 
-                    setInterval(runDetection, 500);
+                    setInterval(runDetection, 250);
                 },
                 (err) => {
                     console.log("Video feed not working.");

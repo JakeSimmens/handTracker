@@ -10,105 +10,107 @@ function drawMirroredVideo(video, canvas, context) {
     context.restore();
 }
 
-function processPredictions(predictions, rectLocations) {
+function processHandPredictionsForSoundsToPlay(handPredictions, soundBoxLocations) {
 
-    let centerX = 0;
-    let centerY = 0;
-
-    if (!predictions.length) {
+    if (!handPredictions.length) {
         return;
     }
 
     //pulls out x,y coordinates to send to sound player
-    for (let prediction of predictions) {
+    for (let handPrediction of handPredictions) {
 
-        //figure center coordinates of hand box
-        centerX = prediction.bbox[0] + prediction.bbox[2] * .5;
-        centerY = prediction.bbox[1] + prediction.bbox[3] * .5;
-
-        //draws white dot for hand location
-        context.fillStyle = "white";
-        context.fillRect(centerX, centerY, 5, 5);
-
-        soundPlayer(centerX, centerY, rectLocations);
+        const { centerX, centerY } = markCenterLocationOfHandBox(handPrediction.bbox);
+        playSoundBasedOnLocation(centerX, centerY, soundBoxLocations);
     }
-
-
 }
 
-function overlayRectangles(video, context) {
+function markCenterLocationOfHandBox(box) {
+
+    const [upperLeftX, upperLeftY, boxWidth, boxHeight] = box;
+    let centerX = upperLeftX + boxWidth * .5;
+    let centerY = upperLeftY + boxHeight * .5;
+
+    //draws white dot for hand location
+    context.fillStyle = "white";
+    context.fillRect(centerX, centerY, 5, 5);
+    return { centerX, centerY };
+}
+
+function overlayColoredRectangles(video, context) {
 
     //figure rectangle size and spacing based on video width
     let rectWidth = video.width * .3;
     let rectHeight = rectWidth * .75;
-    let xSpacing = (video.width - (rectWidth * 2)) / 3;
-    let ySpacing = xSpacing * .75;
+    let horizontalSpacingAroundBox = (video.width - (rectWidth * 2)) / 3;
+    let verticalSpacingAroundBox = horizontalSpacingAroundBox * .75;
     let rightBoxSpacing = 0;
     let botBoxSpacing = 0;
     let rectLocations = {};
 
     //upper left
-    rectLocations = {
-        upperLeft: [xSpacing, ySpacing, rectWidth, rectHeight]
-    };
-    drawRect("rgba(0,255,100, .5)", rectLocations.upperLeft, context);
+    rectLocations.upperLeft = [horizontalSpacingAroundBox, verticalSpacingAroundBox, rectWidth, rectHeight];
+    drawColoredRectangle("rgba(0,255,100, .5)", rectLocations.upperLeft, context);
 
     //upper right
-    rightBoxSpacing = xSpacing * 2 + rectWidth;
-    rectLocations.upperRight = [rightBoxSpacing, ySpacing, rectWidth, rectHeight];
-    drawRect("rgba(255,150,0, .5)", rectLocations.upperRight, context);
+    rightBoxSpacing = horizontalSpacingAroundBox * 2 + rectWidth;
+    rectLocations.upperRight = [rightBoxSpacing, verticalSpacingAroundBox, rectWidth, rectHeight];
+    drawColoredRectangle("rgba(255,150,0, .5)", rectLocations.upperRight, context);
 
     //lower left
-    botBoxSpacing = ySpacing * 2 + rectHeight;
-    rectLocations.lowerLeft = [xSpacing, botBoxSpacing, rectWidth, rectHeight];
-    drawRect("rgba(128, 0, 128, .5)", rectLocations.lowerLeft, context);
+    botBoxSpacing = verticalSpacingAroundBox * 2 + rectHeight;
+    rectLocations.lowerLeft = [horizontalSpacingAroundBox, botBoxSpacing, rectWidth, rectHeight];
+    drawColoredRectangle("rgba(128, 0, 128, .5)", rectLocations.lowerLeft, context);
 
     //lower right
     rectLocations.lowerRight = [rightBoxSpacing, botBoxSpacing, rectWidth, rectHeight];
-    drawRect("rgba(0,0,255, .5)", rectLocations.lowerRight, context);
+    drawColoredRectangle("rgba(0,0,255, .5)", rectLocations.lowerRight, context);
 
     return rectLocations;
 }
 
-function drawRect(color, rect, context) {
+function drawColoredRectangle(color, rectangleData, context) {
     context.fillStyle = color;
-    context.fillRect(rect[0], rect[1], rect[2], rect[3]);
+    context.fillRect(rectangleData[0], rectangleData[1], rectangleData[2], rectangleData[3]);
 }
 
-function soundPlayer(x, y, locations) {
+function playSoundBasedOnLocation(pointerLocationX, pointerLocationY, soundBoxLocations) {
 
-    const { upperLeft, lowerLeft, upperRight, lowerRight } = locations;
+    const { upperLeft, lowerLeft, upperRight, lowerRight } = soundBoxLocations;
 
-    //box arrays:  xStart, yStart, xWidth, yHeight
-    let upperTopEdge = upperLeft[1];
-    let upperBotEdge = upperLeft[1] + upperLeft[3];
-    let lowerTopEdge = lowerLeft[1];
-    let lowerBotEdge = lowerLeft[1] + lowerLeft[3];
+    //box arrays:  [xStart, yStart, xWidth, yHeight]
+    let upperBoxTopEdge = upperLeft[1];
+    let upperBoxBottomEdge = upperLeft[1] + upperLeft[3];
+    let lowerBoxTopEdge = lowerLeft[1];
+    let lowerBoxBottomEdge = lowerLeft[1] + lowerLeft[3];
     let leftBoxLeftEdge = upperLeft[0];
     let leftBoxRightEdge = upperLeft[0] + upperLeft[2];
     let rightBoxLeftEdge = upperRight[0];
     let rightBoxRightEdge = upperRight[0] + upperRight[2];
 
 
-    if (y > upperTopEdge && y < upperBotEdge) {
-        //top boxes
-        if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
-            //play upper left sound
-            audio1.play();
-        } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
-            //play upper right sound
-            audio2.play();
-        }
-    } else if (y > lowerTopEdge && y < lowerBotEdge) {
-        //bottom boxes
-        if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
-            //play lower left sound
-            audio3.play();
-        } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
-            //play lower right sound
-            audio4.play();
-        }
+    if (pointerLocationY > upperBoxTopEdge && pointerLocationY < upperBoxBottomEdge) {
+        topBoxesPlaySound(pointerLocationX, leftBoxLeftEdge, leftBoxRightEdge, rightBoxLeftEdge, rightBoxRightEdge);
+    } else if (pointerLocationY > lowerBoxTopEdge && pointerLocationY < lowerBoxBottomEdge) {
+        bottomBoxesPlaySound(pointerLocationX, leftBoxLeftEdge, leftBoxRightEdge, rightBoxLeftEdge, rightBoxRightEdge);
     }
+}
 
+function topBoxesPlaySound(x, leftBoxLeftEdge, leftBoxRightEdge, rightBoxLeftEdge, rightBoxRightEdge) {
+    if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
+        //play left sound
+        audio1.play();
+    } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
+        //play right sound
+        audio2.play();
+    }
+}
 
+function bottomBoxesPlaySound(x, leftBoxLeftEdge, leftBoxRightEdge, rightBoxLeftEdge, rightBoxRightEdge) {
+    if (x > leftBoxLeftEdge && x < leftBoxRightEdge) {
+        //play left sound
+        audio3.play();
+    } else if (x > rightBoxLeftEdge && x < rightBoxRightEdge) {
+        //play right sound
+        audio4.play();
+    }
 }

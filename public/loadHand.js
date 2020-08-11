@@ -34,22 +34,22 @@ const modelParams = {
 
 
 //detect hands in video
-function runDetection() {
+function runHandDetection() {
     model.detect(video)
         .then(predictions => {
 
-            let overlayLocations;
+            let rectangleOverlayLocations;
 
             drawMirroredVideo(video, canvas, context);
 
             //Handtrack's method of drawing second image with boxes of hand locations
             //model.renderPredictions(predictions, canvas, context, video);
 
-            overlayLocations = overlayRectangles(video, context);
+            rectangleOverlayLocations = overlayColoredRectangles(video, context);
 
             //Code to interact wtih sound is based on prediction data
             if (predictions.length > 0) {
-                processPredictions(predictions, overlayLocations);
+                processHandPredictionsForSoundsToPlay(predictions, rectangleOverlayLocations);
             }
 
         })
@@ -70,7 +70,7 @@ handTrack.startVideo(video)
                 })
                 .then(stream => {
                     video.srcObject = stream;
-                    setInterval(runDetection, 500);
+                    setInterval(runHandDetection, 500);
                 });
         }
     })

@@ -36,33 +36,104 @@ function markCenterLocationOfHandBox(box) {
     return { centerX, centerY };
 }
 
+class ColoredRectanglesOverlay {
+
+    constructor(video, context) {
+        this.videoDisplay = video;
+        this.context = context;
+        this.rectWidth = video.width * .3;
+        this.rectHeight = this.rectWidth * .75;
+        this.horizontalSpaceBetweenBox = (video.width - (this.rectWidth * 2)) / 3;
+        this.verticalSpaceBetweenBox = this.horizontalSpaceBetweenBox * .75;
+        this.rectLocations = {
+            upperLeft: [],
+            upperRight: [],
+            lowerLeft: [],
+            lowerRight: []
+        };
+    }
+
+
+    overlayColoredRectangles() {
+
+        this.calculateRectangleLocations();
+
+        let rect = this.rectLocations;
+        this.drawColoredRectangle("rgba(0,255,100, .5)", rect.upperLeft);
+        this.drawColoredRectangle("rgba(255,150,0, .5)", rect.upperRight);
+        this.drawColoredRectangle("rgba(128, 0, 128, .5)", rect.lowerLeft);
+        this.drawColoredRectangle("rgba(0,0,255, .5)", rect.lowerRight);
+
+        return rect;
+    }
+
+    calculateRectangleLocations() {
+        this.rectLocations.upperLeft = [
+            this.horizontalSpaceBetweenBox,
+            this.verticalSpaceBetweenBox,
+            this.rectWidth,
+            this.rectHeight
+        ];
+
+        let leftEdgeOfRightBox = this.horizontalSpaceBetweenBox * 2 + this.rectWidth;
+        this.rectLocations.upperRight = [
+            leftEdgeOfRightBox,
+            this.verticalSpaceBetweenBox,
+            this.rectWidth,
+            this.rectHeight
+        ];
+
+        let topEdgeOfBottomBox = this.verticalSpaceBetweenBox * 2 + this.rectHeight;
+        this.rectLocations.lowerLeft = [
+            this.horizontalSpaceBetweenBox,
+            topEdgeOfBottomBox,
+            this.rectWidth,
+            this.rectHeight
+        ];
+
+        this.rectLocations.lowerRight = [
+            leftEdgeOfRightBox,
+            topEdgeOfBottomBox,
+            this.rectWidth,
+            this.rectHeight
+        ];
+    }
+
+    drawColoredRectangle(color, rectangleData) {
+        this.context.fillStyle = color;
+        this.context.fillRect(rectangleData[0], rectangleData[1], rectangleData[2], rectangleData[3]);
+    }
+}
+
+
+
 function overlayColoredRectangles(video, context) {
 
     //figure rectangle size and spacing based on video width
     let rectWidth = video.width * .3;
     let rectHeight = rectWidth * .75;
-    let horizontalSpacingAroundBox = (video.width - (rectWidth * 2)) / 3;
-    let verticalSpacingAroundBox = horizontalSpacingAroundBox * .75;
-    let rightBoxSpacing = 0;
-    let botBoxSpacing = 0;
+    let horizontalSpaceBetweenBox = (video.width - (rectWidth * 2)) / 3;
+    let verticalSpaceBetweenBox = horizontalSpaceBetweenBox * .75;
+    let leftEdgeOfRightBox = 0;
+    let topEdgeOfBottomBox = 0;
     let rectLocations = {};
 
     //upper left
-    rectLocations.upperLeft = [horizontalSpacingAroundBox, verticalSpacingAroundBox, rectWidth, rectHeight];
+    rectLocations.upperLeft = [horizontalSpaceBetweenBox, verticalSpaceBetweenBox, rectWidth, rectHeight];
     drawColoredRectangle("rgba(0,255,100, .5)", rectLocations.upperLeft, context);
 
     //upper right
-    rightBoxSpacing = horizontalSpacingAroundBox * 2 + rectWidth;
-    rectLocations.upperRight = [rightBoxSpacing, verticalSpacingAroundBox, rectWidth, rectHeight];
+    leftEdgeOfRightBox = horizontalSpaceBetweenBox * 2 + rectWidth;
+    rectLocations.upperRight = [leftEdgeOfRightBox, verticalSpaceBetweenBox, rectWidth, rectHeight];
     drawColoredRectangle("rgba(255,150,0, .5)", rectLocations.upperRight, context);
 
     //lower left
-    botBoxSpacing = verticalSpacingAroundBox * 2 + rectHeight;
-    rectLocations.lowerLeft = [horizontalSpacingAroundBox, botBoxSpacing, rectWidth, rectHeight];
+    topEdgeOfBottomBox = verticalSpaceBetweenBox * 2 + rectHeight;
+    rectLocations.lowerLeft = [horizontalSpaceBetweenBox, topEdgeOfBottomBox, rectWidth, rectHeight];
     drawColoredRectangle("rgba(128, 0, 128, .5)", rectLocations.lowerLeft, context);
 
     //lower right
-    rectLocations.lowerRight = [rightBoxSpacing, botBoxSpacing, rectWidth, rectHeight];
+    rectLocations.lowerRight = [leftEdgeOfRightBox, topEdgeOfBottomBox, rectWidth, rectHeight];
     drawColoredRectangle("rgba(0,0,255, .5)", rectLocations.lowerRight, context);
 
     return rectLocations;

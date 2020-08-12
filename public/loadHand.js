@@ -32,24 +32,16 @@ const modelParams = {
 //     navigator.mozGetUserMedia ||
 //     navigator.msGetUserMedia;
 
-
-//detect hands in video
 function runHandDetection() {
     model.detect(video)
-        .then(predictions => {
-
-            let rectangleOverlayLocations;
+        .then(handPredictions => {
 
             drawMirroredVideo(video, canvas, context);
+            //let rectangleOverlayLocations = overlayColoredRectangles(video, context);
+            let rectangleOverlayLocations = new ColoredRectanglesOverlay(video, context).overlayColoredRectangles();
 
-            //Handtrack's method of drawing second image with boxes of hand locations
-            //model.renderPredictions(predictions, canvas, context, video);
-
-            rectangleOverlayLocations = overlayColoredRectangles(video, context);
-
-            //Code to interact wtih sound is based on prediction data
-            if (predictions.length > 0) {
-                processHandPredictionsForSoundsToPlay(predictions, rectangleOverlayLocations);
+            if (handPredictions.length > 0) {
+                processHandPredictionsForSoundsToPlay(handPredictions, rectangleOverlayLocations);
             }
 
         })

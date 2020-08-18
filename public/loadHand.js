@@ -26,23 +26,19 @@ const modelParams = {
     scoreThreshold: 0.79,    // confidence threshold for predictions.
 }
 
-//access video feed based on browser
-// navigator.getUserMedia = navigator.getUserMedia ||
-//     navigator.webkitGetUserMedia ||
-//     navigator.mozGetUserMedia ||
-//     navigator.msGetUserMedia;
-
 function runHandDetection() {
     model.detect(video)
         .then(handPredictions => {
 
             drawMirroredVideo(video, canvas, context);
-            //let rectangleOverlayLocations = overlayColoredRectangles(video, context);
-            let rectangleOverlayLocations = new ColoredRectanglesOverlay(video, context).overlayColoredRectangles();
+            const overlayLocations = new ColoredRectanglesOverlay(video, context).overlayColoredRectangles();
 
-            if (handPredictions.length > 0) {
-                processHandPredictionsForSoundsToPlay(handPredictions, rectangleOverlayLocations);
+            if(!(handPredictions.length > 0)){
+                return;
             }
+
+            const processPredictions = new HandPredictionsProcessing(handPredictions, overlayLocations, context);
+            processPredictions.processHandPredictionsForSoundsToPlay();
 
         })
         .catch(err => {
